@@ -1,0 +1,53 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Add Windows PC",
+        "description": "Topic base of the service (mqtt_topic_base), e.g. windows/buero.",
+        "data": {
+          "topic_base": "Topic base",
+          "device_name": "Device name"
+        }
+      }
+    },
+    "error": {
+      "invalid_topic_base": "Invalid topic base (not empty, no + or #, no leading or trailing slash, no control characters).",
+      "invalid_name": "The device name must not be empty."
+    },
+    "abort": {
+      "already_configured": "This topic base is already configured."
+    }
+  },
+  "entity": {
+    "button": {
+      "logon": { "name": "Sign in / unlock" },
+      "lock": { "name": "Lock PC" }
+    },
+    "sensor": {
+      "last_result": {
+        "name": "Last result",
+        "state": {
+          "accepted": "Accepted",
+          "logged_in": "Signed in",
+          "unlocked": "Unlocked",
+          "already_unlocked": "Already unlocked",
+          "other_user_active": "Other user active",
+          "authentication_failed": "Authentication failed",
+          "interaction_required": "Interaction required",
+          "session_state_unknown": "Session state unknown",
+          "not_enabled": "Not enabled",
+          "not_configured": "Not configured",
+          "locked": "Locked",
+          "already_locked": "Already locked",
+          "no_session": "No session",
+          "app_started": "App started",
+          "session_locked": "Session locked",
+          "app_not_found": "App not found",
+          "app_start_failed": "App start failed",
+          "busy": "Busy",
+          "outcome_unknown": "Outcome unknown"
+        }
+      }
+    }
+  }
+}

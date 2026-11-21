@@ -1,0 +1,53 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Windows-PC hinzufügen",
+        "description": "Topic-Basis des Dienstes (mqtt_topic_base), z. B. windows/buero.",
+        "data": {
+          "topic_base": "Topic-Basis",
+          "device_name": "Gerätename"
+        }
+      }
+    },
+    "error": {
+      "invalid_topic_base": "Ungültige Topic-Basis (nicht leer, ohne + und #, ohne führenden oder abschließenden Schrägstrich, ohne Steuerzeichen).",
+      "invalid_name": "Der Gerätename darf nicht leer sein."
+    },
+    "abort": {
+      "already_configured": "Diese Topic-Basis ist bereits eingerichtet."
+    }
+  },
+  "entity": {
+    "button": {
+      "logon": { "name": "Anmelden / Entsperren" },
+      "lock": { "name": "PC sperren" }
+    },
+    "sensor": {
+      "last_result": {
+        "name": "Letztes Ergebnis",
+        "state": {
+          "accepted": "Angenommen",
+          "logged_in": "Angemeldet",
+          "unlocked": "Entsperrt",
+          "already_unlocked": "Bereits entsperrt",
+          "other_user_active": "Anderer Benutzer aktiv",
+          "authentication_failed": "Authentifizierung fehlgeschlagen",
+          "interaction_required": "Interaktion erforderlich",
+          "session_state_unknown": "Sitzungsstatus unbekannt",
+          "not_enabled": "Nicht freigegeben",
+          "not_configured": "Nicht eingerichtet",
+          "locked": "Gesperrt",
+          "already_locked": "Bereits gesperrt",
+          "no_session": "Keine Sitzung",
+          "app_started": "Anwendung gestartet",
+          "session_locked": "Sitzung gesperrt",
+          "app_not_found": "Anwendung nicht gefunden",
+          "app_start_failed": "Start fehlgeschlagen",
+          "busy": "Beschäftigt",
+          "outcome_unknown": "Ausgang unbekannt"
+        }
+      }
+    }
+  }
+}
