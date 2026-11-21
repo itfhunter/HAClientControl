@@ -2,9 +2,8 @@
 
 Home-Assistant-Integration, die einen Windows-PC mit dem Dienst HAClientControl über MQTT steuert:
 ein Button „Anmelden / Entsperren“, ein Button „PC sperren“ (ab 0.7.0) und ein Sensor „Letztes Ergebnis“.
-Die am PC eingerichteten Anwendungen („<Name> starten“) sind in dieser Integration **nicht** enthalten; sie gibt es
-nur über die MQTT-Discovery des Dienstes. Sie ist die Alternative zur
-MQTT-Discovery des Dienstes.
+Ab 0.7.3 kommt je am PC freigegebener Anwendung ein Button „<Name> starten“ dazu (siehe unten, „App-Buttons“).
+Die Integration ist die Alternative zur MQTT-Discovery von Home Assistant für denselben PC.
 
 **Wichtig:** Am selben PC entweder diese Integration **oder** die Dienst-Option „MQTT-Discovery“ nutzen, nicht
 beides, sonst entstehen doppelte Buttons.
@@ -33,7 +32,26 @@ Der Windows-Client (MSI) wird separat bereitgestellt. Die MQTT-Integration von H
   Attribute: `request_id`, `finished_at`, `action`, `app_id`, `eigener_auftrag` (Ergebnis gehört zum zuletzt von diesem Button
   gesendeten Auftrag).
 
-Beide Entitäten sind nur verfügbar, solange `<Basis>/availability` den Wert `online` hat.
+- **App-Buttons „<Name> starten“ (ab 0.7.3):** je freigegebener Anwendung ein Button, der einen `launch_app`-Auftrag
+  mit der `app_id` sendet (gleicher Kanal, QoS 1, nicht retained, nur beim Drücken).
+
+Alle Entitäten sind nur verfügbar, solange `<Basis>/availability` den Wert `online` hat.
+
+## App-Buttons
+
+Die Integration liest die App-Liste aus der retained MQTT-Discovery des Dienstes
+(`homeassistant/device/<Node>/config`, `<Node>` = `hacc_` + Topic-Basis, jedes Zeichen außer `A-Za-z0-9_-` wird `_`;
+für `windows/buero` also `hacc_windows_buero`). Voraussetzung: am PC ist **„In Home Assistant anzeigen
+(MQTT-Discovery)“** aktiv. Pfade und Argumente stehen dort nie, nur Name und `app_id`.
+
+- Neue Anwendung: Button erscheint ohne Neustart. Umbenennung: gleiche Entität (unique_id `<Basis>_app_<app_id>`),
+  neuer Name. Entfernte Anwendung (Tombstone oder nicht mehr in der Liste): Entität und Registry-Eintrag werden gelöscht.
+- Eine leere oder ungültige Discovery-Nachricht wird ignoriert; wer die Dienst-Discovery abschaltet, behält die
+  bisherigen App-Buttons (sie bleiben bis zur nächsten gültigen Liste bestehen).
+- Beim Start wird die retained Nachricht gelesen; dabei wird nie ein Auftrag gesendet.
+- Hat Home Assistant selbst die MQTT-Discovery aktiv, entstehen die Buttons doppelt (einmal durch HA-MQTT, einmal
+  durch diese Integration). Dann entweder die Dienst-Discovery-Nachricht nicht von HA verarbeiten lassen
+  (MQTT-Option „Discovery aktivieren“ aus) oder die Integration nicht nutzen.
 
 ## Broker-ACL
 
@@ -44,6 +62,8 @@ user ha_logon_trigger
 topic write <Basis>/logon/request
 topic read <Basis>/logon/result
 topic read <Basis>/availability
+# nur für die App-Buttons (ab 0.7.3), <Node> siehe oben:
+topic read homeassistant/device/<Node>/config
 ```
 
 ## Sicherheit

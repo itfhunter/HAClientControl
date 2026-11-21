@@ -38,6 +38,10 @@ class HaccState:
         return f"{self.topic_base}/logon/request"
 
     @property
+    def discovery_topic(self) -> str:
+        return f"homeassistant/device/{discovery_node_id(self.topic_base)}/config"
+
+    @property
     def device_info(self) -> DeviceInfo:
         return DeviceInfo(
             identifiers={(DOMAIN, self.topic_base)},
@@ -61,6 +65,59 @@ class HaccState:
                 self.listeners.remove(listener)
 
         return remove
+
+
+APP_ID_RE = re.compile(r"[0-9a-f]{16}")
+APP_NAME_MAX = 100
+
+
+def discovery_node_id(topic_base: str) -> str:
+    """Wie DiscoveryNodeId im Dienst: "hacc_" + Basis, alles ausser [A-Za-z0-9_-] wird '_'."""
+    return "hacc_" + re.sub(r"[^A-Za-z0-9_-]", "_", topic_base)
+
+
+def parse_discovery_apps(payload: str) -> tuple[dict[str, str], set[str]] | None:
+    """Liest die app_*-Komponenten aus dem Discovery-JSON des Dienstes.
+
+    Rueckgabe None: Payload leer oder unbrauchbar, nichts aendern.
+    Sonst (apps, unklar): apps = {app_id: Anzeigename}; unklar = Ids, die in der Payload stehen, aber
+    weder gueltiger Eintrag noch Tombstone sind (werden weder angelegt noch entfernt).
+    Tombstones ({"platform":"button"} ohne name) und fehlende Ids erscheinen in keiner Menge.
+    """
+    if not payload or not payload.strip():
+        return None
+    try:
+        data = json.loads(payload)
+    except (TypeError, ValueError):
+        return None
+    if not isinstance(data, dict):
+        return None
+    components = data.get("components")
+    # Nur Payloads, die wie die des Dienstes aussehen (immer mit "logon"), zaehlen als verlaessliche Liste.
+    if not isinstance(components, dict) or not isinstance(components.get("logon"), dict):
+        return None
+    apps: dict[str, str] = {}
+    unclear: set[str] = set()
+    for key, comp in components.items():
+        if not isinstance(key, str) or not key.startswith("app_"):
+            continue
+        app_id = key[4:]
+        if not APP_ID_RE.fullmatch(app_id):
+            continue
+        if not isinstance(comp, dict):
+            unclear.add(app_id)
+            continue
+        if "name" not in comp:
+            if comp.get("platform") != "button":
+                unclear.add(app_id)
+            continue  # Tombstone
+        name = comp.get("name")
+        name = "".join(c for c in name if c >= " " and c != "").strip() if isinstance(name, str) else ""
+        if comp.get("platform") != "button" or not name:
+            unclear.add(app_id)
+            continue
+        apps[app_id] = name[:APP_NAME_MAX]
+    return apps, unclear
 
 
 def parse_result(payload: str) -> dict[str, Any] | None:
